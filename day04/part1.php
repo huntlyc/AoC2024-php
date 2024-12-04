@@ -1,11 +1,13 @@
 <?php
+    declare(strict_types=1);
+
     define('DEBUG', false);
 
     $rawInput = file_get_contents(DEBUG ? 'test-input.txt' : 'input.txt');
     $lines = explode(PHP_EOL, $rawInput);
 
 
-    function printGrid($grid) {
+    function printGrid(array &$grid) {
         foreach($grid as $row) {
             echo implode('', $row) . PHP_EOL;
         }
@@ -22,126 +24,85 @@
         $grid[] = str_split($line);
     }
 
-    printGrid($grid);
+    if(DEBUG) printGrid($grid);
 
     for($row = 0; $row < count($grid); $row++) {
+
+        $rowStr = implode('', $grid[$row]);
+
+        $sum += substr_count($rowStr, 'XMAS');
+        $sum += substr_count($rowStr, 'SAMX');
+
         for($col = 0; $col < count($grid[$row]); $col++) {
+            if($row == 0){
+                $colStr = implode('', array_column($grid, $col));
+                $sum += substr_count($colStr, 'XMAS');
+                $sum += substr_count($colStr, 'SAMX');
+            }
             $char = $grid[$row][$col];
+
             if($char == 'X'){
-                echo "Checking $row, $col" . PHP_EOL;
-                $sum += hasXmas($grid, $row, $col);
+                $sum += countXmasDiagonals($grid, $row, $col);
             }
         }
     }
 
-    function hasXmas($grid, $row, $col) {
+
+    /**
+     * Check if the word XMAS is on the diagonal direction
+     * @param $grid
+     * @param $x
+     * @param $y
+     * @param $dir [x, y] direction with poitive values being down and right
+     * @return bool
+     */
+    function hasXmasOnDiagonalDirection(array &$grid, int $row, int $col, array $dir):bool {
+        $s = '';
+
+        for($i = 0; $i < 4; $i++) {
+            $s .= $grid[$row + ($dir[0] * $i)][$col + ($dir[1] * $i)];
+        }
+
+        if($s == 'XMAS') {
+            return true;
+        }
+
+        return false;
+
+    }
+
+
+    /**
+     * Count the number of XMAS in the diagonals from the given position
+     * @param $grid
+     * @param $row
+     * @param $col
+     * @return int
+     */
+    function countXmasDiagonals(array &$grid, int $row, int $col):int {
         $count = 0;
-        // Check up
-        $s = '';
-        for($i = 0; $i < 4; $i++) {
-            if($row - $i < 0) break;
-            $s .= $grid[$row - $i][$col];
-        }
-        if($s == 'XMAS') {
-            ++$count;
-        }else{
-            echo "Up: $s" . PHP_EOL;
-        }
-
-        // Check down
-        $s = '';
-        for($i = 0; $i < 4; $i++) {
-            if($row + $i >= count($grid)) break;
-            $s .= $grid[$row + $i][$col];
-        }
-
-        if($s == 'XMAS') {
-            ++$count;
-        }else{
-            echo "Down: $s" . PHP_EOL;
-        }
-
-        // Check left
-        $s = '';
-        for($i = 0; $i < 4; $i++) {
-            if($col - $i < 0) break;
-            $s .= $grid[$row][$col - $i];
-        }
-
-        if($s == 'XMAS') {
-            ++$count;
-        }else{
-            echo "Left: $s" . PHP_EOL;
-        }
-
-        // Check right
-        $s = '';
-        for($i = 0; $i < 4; $i++) {
-            if($col + $i >= count($grid[$row])) break;
-            $s .= $grid[$row][$col + $i];
-        }
-
-        if($s == 'XMAS') {
-            ++$count;
-        }else{
-            echo "Right: $s" . PHP_EOL;
-        }
 
         // Check up-left
-        $s = '';
-        for($i = 0; $i < 4; $i++) {
-            if($row - $i < 0 || $col - $i < 0) break;
-            $s .= $grid[$row - $i][$col - $i];
-        }
-
-        if($s == 'XMAS') {
-            ++$count;
-        }else{
-            echo "Up-left: $s" . PHP_EOL;
+        if($row - 3 >= 0 && $col - 3 >= 0) {
+            $count += hasXmasOnDiagonalDirection($grid, $row, $col, [-1, -1]);
         }
 
         // Check up-right
-        $s = '';
-        for($i = 0; $i < 4; $i++) {
-            if($row - $i < 0 || $col + $i >= count($grid[$row])) break;
-            $s .= $grid[$row - $i][$col + $i];
-        }
-
-        if($s == 'XMAS') {
-            ++$count;
-        }else{
-            echo "Up-right: $s" . PHP_EOL;
+        if($row - 3 >= 0 && $col + 3 < count($grid[$row])) {
+            $count += hasXmasOnDiagonalDirection($grid, $row, $col, [-1, 1]);
         }
 
         // Check down-left
-        //
-        $s = '';
-        for($i = 0; $i < 4; $i++) {
-            if($row + $i >= count($grid) || $col - $i < 0) break;
-            $s .= $grid[$row + $i][$col - $i];
-        }
-
-        if($s == 'XMAS') {
-            ++$count;
-        }else{
-            echo "Down-left: $s" . PHP_EOL;
+        if($row + 3 < count($grid) && $col - 3 >= 0) {
+            $count += hasXmasOnDiagonalDirection($grid, $row, $col, [1, -1]);
         }
 
         // Check down-right
-        $s = '';
-        for($i = 0; $i < 4; $i++) {
-            if($row + $i >= count($grid) || $col + $i >= count($grid[$row])) break;
-            $s .= $grid[$row + $i][$col + $i];
-        }
-
-        if($s == 'XMAS') {
-            ++$count;
-        }else{
-            echo "Down-right: $s" . PHP_EOL;
+        if($row + 3 < count($grid) && $col + 3 < count($grid[$row])) {
+            $count += hasXmasOnDiagonalDirection($grid, $row, $col, [1, 1]);
         }
 
         return $count;
     }
 
-    echo "Part 1 answer: $sum";
-    echo PHP_EOL;
+    echo "Part 1 answer: $sum". PHP_EOL;
