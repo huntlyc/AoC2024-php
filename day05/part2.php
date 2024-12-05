@@ -52,15 +52,11 @@
     }
 
 
-    echo "Invalid updates: ". PHP_EOL;
-    var_dump($invalidUpdates);
-
     for($i = 0; $i < count($invalidUpdates); ){
         $update = $invalidUpdates[$i];
         $updatePages = explode(',',$update);
-        $valid = true;
         $invalidPageOrder = [];
-
+        $valid = true;
         $goAgain = false;
 
         foreach($updatePages as $updatePage){
@@ -76,8 +72,6 @@
             }
 
             if(!$valid){
-                echo "Invalid update: $update". PHP_EOL;
-                echo "Invalid page order: ". implode(',',$invalidPageOrder[0]). PHP_EOL;
                 $i1 = $i2 = 0;
                 for($ri = 0; $ri < count($updatePages); $ri++){
                     if($updatePages[$ri] == $invalidPageOrder[0][1]){
@@ -95,24 +89,28 @@
 
                 break;
             }
+
+            if($goAgain){
+                break;
+            }
         }
+
+
         $invalidUpdates[$i] = implode(',',$updatePages);
         if(!$goAgain){
             $i++;
         }
     }
 
-    echo "Invalid updates after fix: ". PHP_EOL;
-    var_dump($invalidUpdates);
-        $validSum = 0;
+    $invalidSum = 0;
     if(!empty($invalidUpdates)) {
         foreach($invalidUpdates as $update) {
             $updatePages = explode(',',$update);
-            $validSum += intval($updatePages[(count($updatePages)-1)/2]);
+            $invalidSum += intval($updatePages[(count($updatePages)-1)/2]);
         }
     }
 
 
 
-    echo "Part 2 answer: $validSum". PHP_EOL;
+    echo "Part 2 answer: $invalidSum". PHP_EOL;
 
