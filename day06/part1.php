@@ -1,8 +1,10 @@
 <?php
     declare(strict_types=1);
 
-    define('DEBUG', false);
-    define('TICK_TIMOUT', intval(1 * 1000));
+    include 'utils.php'; // print grid,e.t.c.
+
+    define('DEBUG', true);
+    define('TICK_TIMOUT', intval(10 * 10000));
 
     $rawInput = file_get_contents(DEBUG ? 'test-input.txt' : 'input.txt');
     $lines = explode(PHP_EOL, $rawInput);
@@ -13,42 +15,8 @@
     $pos = [0,0];
     $visited = [];
 
-    function cls(){
-        print("\033[2J\033[;H");
-    }
 
-    function printGrid(array $grid) {
-        foreach($grid as $row) {
-            echo implode('', $row) . PHP_EOL;
-        }
-        echo PHP_EOL;
-        echo PHP_EOL;
-    }
-    function printGridWithVisited(array $grid, array $visited, $pos = null) {
-
-        $i = 0;
-        foreach($visited as $v) {
-            if(++$i === 1) {
-                $grid[$v[0]][$v[1]] = '^';
-            } else {
-                $grid[$v[0]][$v[1]] = 'X';
-            }
-        }
-
-        if($pos) {
-            $grid[$pos[0]][$pos[1]] = '^';
-        }
-
-        foreach($grid as $row) {
-            echo implode('', $row) . PHP_EOL;
-        }
-
-        echo PHP_EOL;
-        echo PHP_EOL;
-    }
-
-
-    function isOutOfBounds($grid, $pos) {
+    function isOutOfBounds(array $grid, array $pos) {
         if($pos[0] < 0 || $pos[0] >= count($grid) -1){
             return true;
         }
@@ -58,7 +26,7 @@
         }
     }
 
-    function moveUntilBlock($grid, &$visited, &$pos, $dir) {
+    function moveUntilBlock(array $grid, array &$visited, array &$pos, array $dir) {
         while(true) {
             $nextPos = [$pos[0] + $dir[0], $pos[1] + $dir[1]];
 
@@ -75,15 +43,15 @@
             addVisited($visited, $pos);
             usleep(TICK_TIMOUT);
             cls();
-            printGridWithVisited($grid, $visited, $pos);
+            printGridInColour($grid, $visited, $pos);
         }
     }
 
-    function addVisited(&$visited, $pos) {
+    function addVisited(array &$visited, array $pos) {
         $visited[implode(',',$pos)] = $pos;
     }
 
-    function turnRight($dir) {
+    function turnRight(array $dir) {
         // up to right
         switch(implode(',',$dir)) {
             case '-1,0': // up to right
@@ -115,11 +83,5 @@
             break;
         }
     }
-
-
-
-
-    //printGridWithVisited($grid, $visited);
-
 
     echo "Part 1 answer: ". count($visited) . PHP_EOL;
