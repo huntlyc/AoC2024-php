@@ -1,0 +1,20 @@
+{
+    "name": "huntlycameron/ao-c2024-php",
+    "description": "Advent of code",
+    "type": "project",
+    "authors": [
+        {
+            "name": "Huntly Cameron",
+            "email": "huntly.cameron@gmail.com"
+        }
+    ],
+    "require-dev": {
+        "pestphp/pest": "^3.6",
+        "phpstan/phpstan": "^2.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
+}

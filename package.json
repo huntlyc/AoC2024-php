@@ -1,0 +1,19 @@
+{
+  "name": "aoc2024-php",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "./vendor/bin/pest",
+    "lint": "./vendor/bin/phpstan"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/huntlyc/AoC2024-php.git"
+  },
+  "author": "Huntly Cameron <huntly.cameron@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/huntlyc/AoC2024-php/issues"
+  },
+  "homepage": "https://github.com/huntlyc/AoC2024-php#readme",
+  "description": ""
+}
