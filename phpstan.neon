@@ -4,3 +4,4 @@ parameters:
         - tests/*
     paths:
         - day07/
+        - day08/

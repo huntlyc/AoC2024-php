@@ -16,5 +16,10 @@
         "allow-plugins": {
             "pestphp/pest-plugin": true
         }
+    },
+    "autoload": {
+        "psr-4": {
+            "AOC\\D08\\P1\\": "day08/"
+        }
     }
 }

@@ -31,7 +31,7 @@ class FileSystem{
         $this->blocks = new SplDoublyLinkedList();
     }
 
-    public function defragCompact(){
+    public function defrag(){
         $this->blocks->setIteratorMode(SplDoublyLinkedList::IT_MODE_FIFO);
 
 
@@ -64,42 +64,6 @@ class FileSystem{
             $tail++;
         }
     }
-
-    public function defragRetainingWholeFiles(){
-        $this->blocks->setIteratorMode(SplDoublyLinkedList::IT_MODE_FIFO);
-
-        $tail = 0;
-        $head = $this->blocks->count() - 1;
-
-        // get first block of free space
-        $freeSpaceStart = -1;
-        $freeSpaceEnd = -1;
-        for ($this->blocks->rewind(); $this->blocks->valid(); $this->blocks->next()) {
-            if($this->blocks->current()->label == -1){
-                $freeSpaceStart = $this->blocks->key();
-            }else{
-                $freeSpaceEnd = $this->blocks->key();
-                break;
-            }
-        }
-
-        // get last file start and end
-        $fileStart = -1;
-        $fileEnd = -1;
-        $fileLabel = -1;
-
-        $this->blocks->setIteratorMode(SplDoublyLinkedList::IT_MODE_LIFO);
-        for ($this->blocks->rewind(); $this->blocks->valid(); $this->blocks->next()) {
-            if($this->blocks->current()->label != -1){
-                $fileLabel = $this->blocks->current()->label;
-                $fileStart = $this->blocks->key();
-                break;
-            }
-        }
-
-
-    }
-
 
     public function checksum(){
         $checksum = 0;
@@ -174,7 +138,7 @@ class Part1{
 
         echo "{$fs}" . PHP_EOL;
         echo "Defragging..." . PHP_EOL;
-        $fs->defragCompact();
+        $fs->defrag();
 
         echo "{$fs}" . PHP_EOL;
 
@@ -185,25 +149,4 @@ class Part1{
     }
 }
 
-class Part2{
-    static function run(){
-        $input = file_get_contents(__DIR__ . '/test-input.txt');
-        if($input === false) exit("Input file not found" . PHP_EOL);
-
-        $fs = FileSystem::fromMap($input);
-
-        echo "{$fs}" . PHP_EOL;
-        echo "Defragging..." . PHP_EOL;
-        $fs->defragRetainingWholeFiles();
-
-        echo "{$fs}" . PHP_EOL;
-
-        $checksum = $fs->checksum();
-
-
-        echo "Part 2: $checksum" . PHP_EOL;
-    }
-}
-
-//Part1::run();
-Part2::run();
+Part1::run();
