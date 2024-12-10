@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace AOC\D10\P1;
+namespace AOC\D10\P2;
 
 class Grid{
 
@@ -11,6 +11,9 @@ class Grid{
      */
     private array $grid;
 
+    /**
+     * @param string[][] $grid
+     **/
     public function __construct(array $grid){
         $this->grid = $grid;
     }
@@ -71,11 +74,6 @@ class PathFinder{
      */
     private array $startingPositions;
 
-
-    /**
-     * @var Point[][] $endingPositions
-     */
-    private array $endingPositions;
 
 
     /**
@@ -152,7 +150,6 @@ class PathFinder{
         // check if point can go up
         $up = new Point($startingPosition->x, $startingPosition->y - 1);
         if($this->isValidMove($startingPosition, $up)){
-            "can move up $up" . PHP_EOL;
             $validMoves[] = $up;
         }
 
@@ -229,8 +226,8 @@ class PathFinder{
 }
 
 
-class Part1{
-    static function run(){
+class Part2{
+    static function run():void{
         $input = file_get_contents(__DIR__ . '/input.txt');
         if($input === false) exit("Input file not found" . PHP_EOL);
 
@@ -240,8 +237,8 @@ class Part1{
         echo $grid . PHP_EOL;
 
 
-        echo "Part 1: $ans" . PHP_EOL;
+        echo "Part 2: $ans" . PHP_EOL;
     }
 }
 
-Part1::run();
+Part2::run();
