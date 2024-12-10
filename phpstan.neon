@@ -5,3 +5,4 @@ parameters:
     paths:
         - day07/
         - day08/
+        - day11/
