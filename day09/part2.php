@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace AOC\D09\P1;
+namespace AOC\D09\P2;
 use SplDoublyLinkedList;
 
 
@@ -33,7 +33,7 @@ class Block{
 
 class FileSystem{
     /**
-     * @var SplDoublyLinkedList
+     * @var SplDoublyLinkedList<Block>
      **/
     private $blocks;
 
@@ -41,7 +41,7 @@ class FileSystem{
         $this->blocks = new SplDoublyLinkedList();
     }
 
-    public function defrag(){
+    public function defrag():void{
         $this->blocks->setIteratorMode(SplDoublyLinkedList::IT_MODE_FIFO);
         $head = $this->blocks->count() - 1;
 
@@ -65,6 +65,7 @@ class FileSystem{
                 $head--;
             }
 
+	    if(!isset($endBlock)) break;
 
             // start from the beginning and look for something with enough free space
             for($this->blocks->rewind(); $this->blocks->valid(); $this->blocks->next()){
@@ -105,7 +106,7 @@ class FileSystem{
 
 
 
-    public function checksum(){
+    public function checksum():int{
         $checksum = 0;
         $this->blocks->setIteratorMode(SplDoublyLinkedList::IT_MODE_FIFO);
 
@@ -122,7 +123,7 @@ class FileSystem{
         return $checksum;
     }
 
-    static function fromMap(string $map){
+    static function fromMap(string $map):FileSystem{
         $fs = new FileSystem();
 
         if($map === '') return $fs;
@@ -145,27 +146,13 @@ class FileSystem{
         return $fs;
     }
 
-    static function fromString(string $str){
-        $fs = new FileSystem();
-
-        if($str === '') return $fs;
-
-        $str = str_split(trim($str));
-
-        foreach($str as $s){
-            $label = $s == '.' ? -1 : (int)$s;
-            $fs->blocks->push(new Block($label));
-        }
-
-        return $fs;
-    }
 
     public function __toString(){
         $str = '';
         foreach($this->blocks as $block){
             $label = $block->label == -1 ? '.' : $block->label;
             for($i = 0; $i < $block->size; $i++){
-                $str .= $label;
+                $str .= "{$label}";
             }
         }
         return $str;
@@ -173,14 +160,12 @@ class FileSystem{
 }
 
 class Part2{
-    static function run(){
+    static function run():void{
         $input = file_get_contents(__DIR__ . '/input.txt');
         if($input === false) exit("Input file not found" . PHP_EOL);
 
         $fs = FileSystem::fromMap($input);
 
-        echo "{$fs}" . PHP_EOL;
-        /*
         echo "Defragging..." . PHP_EOL;
         $fs->defrag();
 
@@ -188,8 +173,7 @@ class Part2{
         $checksum = $fs->checksum();
 
 
-        echo "Part 2: $checksum" . PHP_EOL;
-         */
+        echo "Part 2: {$checksum}" . PHP_EOL;
     }
 }
 

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 namespace AOC\D09\P1;
+
 use SplDoublyLinkedList;
 
 
@@ -23,7 +24,7 @@ class Block{
 
 class FileSystem{
     /**
-     * @var SplDoublyLinkedList
+     * @var SplDoublyLinkedList<Block>
      **/
     private $blocks;
 
@@ -31,7 +32,7 @@ class FileSystem{
         $this->blocks = new SplDoublyLinkedList();
     }
 
-    public function defrag(){
+    public function defrag():void{
         $this->blocks->setIteratorMode(SplDoublyLinkedList::IT_MODE_FIFO);
 
 
@@ -49,9 +50,9 @@ class FileSystem{
             if($block->label == -1){
                 do{
                     $endBlock = $this->blocks->offsetGet($head);
-                    if($endBlock->label != -1) break;
+                    if($endBlock->label !== -1) break;
                     $head--;
-                }while($endBlock->label == -1 && $head > $tail);
+                }while($head > $tail);
 
                 // move end block here
                 $this->blocks->offsetSet($tail, $endBlock);
@@ -65,7 +66,7 @@ class FileSystem{
         }
     }
 
-    public function checksum(){
+    public function checksum():int{
         $checksum = 0;
         $this->blocks->setIteratorMode(SplDoublyLinkedList::IT_MODE_FIFO);
 
@@ -78,7 +79,7 @@ class FileSystem{
         return $checksum;
     }
 
-    static function fromMap(string $map){
+    static function fromMap(string $map):FileSystem{
         $fs = new FileSystem();
 
         if($map === '') return $fs;
@@ -103,20 +104,6 @@ class FileSystem{
         return $fs;
     }
 
-    static function fromString(string $str){
-        $fs = new FileSystem();
-
-        if($str === '') return $fs;
-
-        $str = str_split(trim($str));
-
-        foreach($str as $s){
-            $label = $s == '.' ? -1 : (int)$s;
-            $fs->blocks->push(new Block($label));
-        }
-
-        return $fs;
-    }
 
     public function __toString(){
         $str = '';
@@ -130,7 +117,7 @@ class FileSystem{
 
 
 class Part1{
-    static function run(){
+    static function run():void{
         $input = file_get_contents(__DIR__ . '/test-input.txt');
         if($input === false) exit("Input file not found" . PHP_EOL);
 
