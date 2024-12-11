@@ -11,6 +11,10 @@ class Grid{
      */
     private array $grid;
 
+
+    /**
+     * @param string[][] $grid
+     */
     public function __construct(array $grid){
         $this->grid = $grid;
     }
@@ -70,13 +74,6 @@ class PathFinder{
      * @var Point[] $startingPositions
      */
     private array $startingPositions;
-
-
-    /**
-     * @var Point[][] $endingPositions
-     */
-    private array $endingPositions;
-
 
     /**
      * PathFinder constructor.
@@ -152,28 +149,24 @@ class PathFinder{
         // check if point can go up
         $up = new Point($startingPosition->x, $startingPosition->y - 1);
         if($this->isValidMove($startingPosition, $up)){
-            "can move up $up" . PHP_EOL;
             $validMoves[] = $up;
         }
 
         // check if point can go down
         $down = new Point($startingPosition->x, $startingPosition->y + 1);
         if($this->isValidMove($startingPosition, $down)){
-            //echo "can move down $down" . PHP_EOL;
             $validMoves[] = $down;
         }
 
         // check if point can go left
         $left = new Point($startingPosition->x - 1, $startingPosition->y);
         if($this->isValidMove($startingPosition, $left)){
-            //echo "can move left $left" . PHP_EOL;
             $validMoves[] = $left;
         }
 
         // check if point can go right
         $right = new Point($startingPosition->x + 1, $startingPosition->y);
         if($this->isValidMove($startingPosition, $right)){
-            //echo "can move right $right" . PHP_EOL;
             $validMoves[] = $right;
         }
 
@@ -185,11 +178,8 @@ class PathFinder{
             return $this->findPathFromPoint($origin, $validMoves[0], $ans);
         }
 
-        echo "cur ans $ans" . PHP_EOL;
-        echo "diverging paths at {$startingPosition}" . PHP_EOL;
 
         $ans = 0;
-        // @TODO: diverging paths
         foreach($validMoves as $move){
             $ans += $this->findPathFromPoint($origin, $move, $ans);
         }
@@ -199,24 +189,22 @@ class PathFinder{
 
     private function isValidMove(Point $a, Point $b): bool{
         $grid = $this->grid->getGrid();
-        //echo "checking if $a can move to $b" . PHP_EOL;
+
         if($this->isPointOutOfBounds($b, $this->grid)){
-            //echo "$b out of bounds" . PHP_EOL;
             return false;
         }
+
         if($grid[$b->y][$b->x] === '.'){
-            //echo "$b is a wall" . PHP_EOL;
             return false;
         }
-        $gradientAtB = intval($grid[$b->y][$b->x]);
+
+
         $gradientAtA = intval($grid[$a->y][$a->x]);
+        $gradientAtB = intval($grid[$b->y][$b->x]);
 
         if($gradientAtB - $gradientAtA === 1){
-            //echo "can move to $b" . PHP_EOL;
             return true;
         }
-
-        //echo "can't move to $b - gradient is ". ($gradientAtB - $gradientAtA) . PHP_EOL;
 
         return false;
     }
@@ -229,19 +217,18 @@ class PathFinder{
 }
 
 
-class Part1{
-    static function run(){
+class Part2{
+    static function run():void{
         $input = file_get_contents(__DIR__ . '/input.txt');
         if($input === false) exit("Input file not found" . PHP_EOL);
 
         $grid = Grid::fromString($input);
         $pathFinder = new PathFinder($grid);
         $ans = $pathFinder->solve();
-        echo $grid . PHP_EOL;
 
 
-        echo "Part 1: $ans" . PHP_EOL;
+        echo "Part 2: $ans" . PHP_EOL;
     }
 }
 
-Part1::run();
+Part2::run();
