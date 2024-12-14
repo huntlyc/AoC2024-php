@@ -206,7 +206,8 @@ function cellType($grid, $r, $c):CellType{
         $cell == $down &&
         $cell !== $downL &&
         $cell !== $left &&
-        $downL == $left
+        $downL == $left &&
+        $up !== $left
     ){
         return CellType::CORNER;
     }else if(
@@ -224,8 +225,11 @@ function cellType($grid, $r, $c):CellType{
         $cell == $down &&
         $cell == $downL &&
         $cell == $left &&
-        $upR == $up &&
-        $right == $downR
+
+        $upL == $up &&
+        $right == $downR &&
+        $right !== $up
+
     ){
         return CellType::CORNER;
     }else if(
@@ -244,8 +248,11 @@ function cellType($grid, $r, $c):CellType{
         $cell !== $down &&
         $cell !== $downL &&
         $cell == $left &&
+
         $upR == $right &&
-        $down == $downR
+        $down == $downL &&
+        $down !== $right
+
     ){
         return CellType::CORNER;
     }else if (
@@ -265,8 +272,10 @@ function cellType($grid, $r, $c):CellType{
         $cell !== $down &&
         $cell == $downL &&
         $cell !== $left &&
+
         $upL == $left &&
-        $down == $downL
+        $down == $downR &&
+        $down !== $left
     ){
         return CellType::CORNER;
     }else if(
@@ -397,10 +406,10 @@ function part2():void{
     $galaxies = [];
     //$input = file_get_contents(__DIR__ . '/single-galaxies-test-input.txt');
     //$input = file_get_contents(__DIR__ . '/e-region-test.txt');
-    $input = file_get_contents(__DIR__ . '/price-test-input2.txt');
+    //$input = file_get_contents(__DIR__ . '/price-test-input2.txt');
    //$input = file_get_contents(__DIR__ . '/base-test-input.txt');
    //$input = file_get_contents(__DIR__ . '/test-input.txt');
-    //$input = file_get_contents(__DIR__ . '/input.txt');
+    $input = file_get_contents(__DIR__ . '/input.txt');
     if($input === false) exit("Input file not found" . PHP_EOL);
     $input = trim($input);
 
