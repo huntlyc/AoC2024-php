@@ -4,6 +4,16 @@ declare(strict_types=1);
 
 namespace AOC\D11\P2;
 
+enum CellType {
+    case CENTER;
+    case CORNER;
+    case VERTICAL_CORRIDOR;
+    case HORIZONTAL_CORRIDOR;
+    case STAND_ALONE;
+    case SINGLE_EDGE;
+    case PENINSULA;
+}
+
 class Grid
 {
     /**
@@ -12,44 +22,100 @@ class Grid
     private array $grid;
 
     /**
+     * @var array<int, string> $legend
+     */
+    private $legend;
+
+    /**
      * @param string[][] $grid
      */
     public function __construct(array $grid)
     {
         $this->grid = $grid;
+        $this->legend = [];
     }
+
+    public function addLegend(int $key, string $value):void{
+        $this->legend[$key] = $value;
+    }
+
+    public function getLegend(int $key):string{
+        return $this->legend[$key];
+    }
+
 
     /**
      * @return string[][]
      */
-    public function getGrid(): array
-    {
+    public function getGrid(): array {
         return $this->grid;
+    }
+
+    public function getWidth(): int {
+        return count($this->grid);
+    }
+
+    public function getHeight(): int {
+        return count($this->grid[0]);
     }
 
     /**
      * @param string[][] $grid
      */
-    public function setGrid(array $grid): void
-    {
+    public function setGrid(array $grid): void {
         $this->grid = $grid;
     }
 
-    public function getCell(int $r, int $c): string|int
-    {
+    public function getCell(int $r, int $c): string {
         if($r < 0 || $r >= count($this->grid) || $c < 0 || $c >= count($this->grid[0])){
             return "";
         }
         return $this->grid[$r][$c];
     }
 
-    public function __toString(): string
-    {
+
+    public function __toString(): string {
         $str = "";
         foreach ($this->grid as $row) {
             $str .= "'" . implode("", $row) . "'" . PHP_EOL;
         }
         return $str;
+    }
+
+    /**
+     * @param int $r
+     * @param int $c
+     * @param int $galaxyCount
+     * @return string[][]
+     */
+    public function floodFill(int $r, int $c, int $galaxyCount):array{
+        $targ = $this->grid[$r][$c];
+        if ($targ == $galaxyCount) return $this->grid;
+        $this->fillNeighbours($r, $c, $galaxyCount, $targ);
+        return $this->grid;
+    }
+
+    private function fillNeighbours(int $r, int $c, int $galaxyCount, string|int $targ): void {
+        if (!isset($this->grid[$r][$c]) || $this->grid[$r][$c] != $targ){
+            return;
+        }
+
+        $this->grid[$r][$c] = "$galaxyCount";
+
+        $this->fillNeighbours($r - 1, $c, $galaxyCount, $targ);
+        $this->fillNeighbours($r + 1, $c, $galaxyCount, $targ);
+        $this->fillNeighbours($r, $c - 1, $galaxyCount, $targ);
+        $this->fillNeighbours($r, $c + 1, $galaxyCount, $targ);
+    }
+
+
+    // clone
+    public function clone(): Grid{
+        $newGrid = [];
+        foreach($this->grid as $row){
+            $newGrid[] = $row;
+        }
+        return new Grid($newGrid);
     }
 
     /**
@@ -69,470 +135,452 @@ class Grid
         }
         return new Grid($grid);
     }
-}
 
-enum CellType {
-    case CENTER;
-    case CORNER;
-    case VERTICAL_CORRIDOR;
-    case HORIZONTAL_CORRIDOR;
-    case STAND_ALONE;
-    case SINGLE_EDGE;
-    case PENINSULA;
-}
-
-function cellType($grid, $r, $c):CellType{
-    $cell = $grid->getCell($r, $c);
-    $up = $grid->getCell($r-1, $c);
-    $left = $grid->getCell($r, $c-1);
-    $right = $grid->getCell($r, $c+1);
-    $down = $grid->getCell($r+1, $c);
-    $upL = $grid->getCell($r-1, $c-1);
-    $downL = $grid->getCell($r+1, $c-1);
-    $upR = $grid->getCell($r-1, $c+1);
-    $downR = $grid->getCell($r+1, $c+1);
+    public function getCellType(Grid $grid, int $r, int $c):CellType{
+        $cell = $grid->getCell($r, $c);
+        $up = $grid->getCell($r-1, $c);
+        $left = $grid->getCell($r, $c-1);
+        $right = $grid->getCell($r, $c+1);
+        $down = $grid->getCell($r+1, $c);
+        $upL = $grid->getCell($r-1, $c-1);
+        $downL = $grid->getCell($r+1, $c-1);
+        $upR = $grid->getCell($r-1, $c+1);
+        $downR = $grid->getCell($r+1, $c+1);
 
 
-    if(
-        /**
-         * Stand alone
-         * 0 0 0
-         * 0 1 0
-         * 0 0 0
-         **/
-        $cell !== $up &&
-        $cell !== $left &&
-        $cell !== $right &&
-        $cell !== $down
-    ){
-        return CellType::STAND_ALONE;
-    }else if(
-        /**
-         * Center
-         * 1 1 1
-         * 1 1 1
-         * 1 1 1
-         **/
-        $cell == $upL &&
-        $cell == $up &&
-        $cell == $upR &&
-        $cell == $right &&
-        $cell == $downR &&
-        $cell == $down &&
-        $cell == $downL &&
-        $cell == $left
-    ){
-            return CellType::CENTER;
-    }else if(
-        /**
-         * Top left corner
-         * 0 0 0
-         * 0 1 1
-         * 0 1 1
-         **/
-        $cell != $upL &&
-        $cell != $up &&
-        $cell != $upR &&
-        $cell == $right &&
-        $cell == $downR &&
-        $cell == $down &&
-        $cell != $downL &&
-        $cell != $left
-    ){
-        return CellType::CORNER;
-    }else if(
-        /**
-         * Top right corner
-         * 0 0 0
-         * 1 1 0
-         * 1 1 0
-         **/
-        $cell != $upL &&
-        $cell != $up &&
-        $cell != $upR &&
-        $cell != $right &&
-        $cell != $downR &&
-        $cell == $down &&
-        $cell == $downL &&
-        $cell == $left
-    ){
-        return CellType::CORNER;
-    }else if(
-        /**
-         * Bottom right corner
-         * 1 1 0
-         * 1 1 0
-         * 0 0 0
-         **/
-        $cell == $upL &&
-        $cell == $up &&
-        $cell != $upR &&
-        $cell != $right &&
-        $cell != $downR &&
-        $cell != $down &&
-        $cell != $downL &&
-        $cell == $left
-    ){
-        return CellType::CORNER;
-    }else if(
-        /**
-         * Bottom left corner
-         * 0 1 1
-         * 0 1 1
-         * 0 0 0
-         **/
-        $cell != $upL &&
-        $cell == $up &&
-        $cell == $upR &&
-        $cell == $right &&
-        $cell != $downR &&
-        $cell != $down &&
-        $cell != $downL &&
-        $cell != $left
-    ){
-        return CellType::CORNER;
-    }else if(
-        /**
-         * Internal Join 1
-         * 1 3 3
-         * 2 1 1
-         * 2 1 1
-         **/
-        $cell == $upL &&
-        $cell !== $up &&
-        $up == $upR &&
-        $cell == $right &&
-        $cell == $downR &&
-        $cell == $down &&
-        $cell !== $downL &&
-        $cell !== $left &&
-        $downL == $left &&
-        $up !== $left
-    ){
-        return CellType::CORNER;
-    }else if(
-        /**
-         * Internal Join 2
-         * 2 2 1
-         * 1 1 3
-         * 1 1 3
-         **/
-        $cell !== $upL &&
-        $cell !== $up &&
-        $cell == $upR &&
-        $cell !== $right &&
-        $cell !== $downR &&
-        $cell == $down &&
-        $cell == $downL &&
-        $cell == $left &&
+        if(
+            /**
+             * Stand alone
+             * 0 0 0
+             * 0 1 0
+             * 0 0 0
+             **/
+            $cell !== $up &&
+            $cell !== $left &&
+            $cell !== $right &&
+            $cell !== $down
+        ){
+            return CellType::STAND_ALONE;
+        }else if(
+            /**
+             * Center
+             * 1 1 1
+             * 1 1 1
+             * 1 1 1
+             **/
+            $cell == $upL &&
+            $cell == $up &&
+            $cell == $upR &&
+            $cell == $right &&
+            $cell == $downR &&
+            $cell == $down &&
+            $cell == $downL &&
+            $cell == $left
+        ){
+                return CellType::CENTER;
+        }else if(
+            /**
+             * Top left corner
+             * 0 0 0
+             * 0 1 1
+             * 0 1 1
+             **/
+            $cell != $upL &&
+            $cell != $up &&
+            $cell != $upR &&
+            $cell == $right &&
+            $cell == $downR &&
+            $cell == $down &&
+            $cell != $downL &&
+            $cell != $left
+        ){
+            return CellType::CORNER;
+        }else if(
+            /**
+             * Top right corner
+             * 0 0 0
+             * 1 1 0
+             * 1 1 0
+             **/
+            $cell != $upL &&
+            $cell != $up &&
+            $cell != $upR &&
+            $cell != $right &&
+            $cell != $downR &&
+            $cell == $down &&
+            $cell == $downL &&
+            $cell == $left
+        ){
+            return CellType::CORNER;
+        }else if(
+            /**
+             * Bottom right corner
+             * 1 1 0
+             * 1 1 0
+             * 0 0 0
+             **/
+            $cell == $upL &&
+            $cell == $up &&
+            $cell != $upR &&
+            $cell != $right &&
+            $cell != $downR &&
+            $cell != $down &&
+            $cell != $downL &&
+            $cell == $left
+        ){
+            return CellType::CORNER;
+        }else if(
+            /**
+             * Bottom left corner
+             * 0 1 1
+             * 0 1 1
+             * 0 0 0
+             **/
+            $cell != $upL &&
+            $cell == $up &&
+            $cell == $upR &&
+            $cell == $right &&
+            $cell != $downR &&
+            $cell != $down &&
+            $cell != $downL &&
+            $cell != $left
+        ){
+            return CellType::CORNER;
+        }else if(
+            /**
+             * Internal Join 1
+             * 1 3 3
+             * 2 1 1
+             * 2 1 1
+             **/
+            $cell == $upL &&
+            $cell !== $up &&
+            $up == $upR &&
+            $cell == $right &&
+            $cell == $downR &&
+            $cell == $down &&
+            $cell !== $downL &&
+            $cell !== $left &&
+            $downL == $left &&
+            $up !== $left
+        ){
+            return CellType::CORNER;
+        }else if(
+            /**
+             * Internal Join 2
+             * 2 2 1
+             * 1 1 3
+             * 1 1 3
+             **/
+            $cell !== $upL &&
+            $cell !== $up &&
+            $cell == $upR &&
+            $cell !== $right &&
+            $cell !== $downR &&
+            $cell == $down &&
+            $cell == $downL &&
+            $cell == $left &&
 
-        $upL == $up &&
-        $right == $downR &&
-        $right !== $up
+            $upL == $up &&
+            $right == $downR &&
+            $right !== $up
 
-    ){
-        return CellType::CORNER;
-    }else if(
-        /**
-         * Internal Join 3
-         *
-         * 1 1 2
-         * 1 1 2
-         * 3 3 1
-         **/
-        $cell == $upL &&
-        $cell == $up &&
-        $cell !== $upR &&
-        $cell !== $right &&
-        $cell == $downR &&
-        $cell !== $down &&
-        $cell !== $downL &&
-        $cell == $left &&
+        ){
+            return CellType::CORNER;
+        }else if(
+            /**
+             * Internal Join 3
+             *
+             * 1 1 2
+             * 1 1 2
+             * 3 3 1
+             **/
+            $cell == $upL &&
+            $cell == $up &&
+            $cell !== $upR &&
+            $cell !== $right &&
+            $cell == $downR &&
+            $cell !== $down &&
+            $cell !== $downL &&
+            $cell == $left &&
 
-        $upR == $right &&
-        $down == $downL &&
-        $down !== $right
+            $upR == $right &&
+            $down == $downL &&
+            $down !== $right
 
-    ){
-        return CellType::CORNER;
-    }else if (
-        /**
-         * Internal Join 4
-         *
-         * 3 1 1
-         * 3 1 1
-         * 1 2 2
-         *
-         **/
-        $cell !== $upL &&
-        $cell == $up &&
-        $cell == $upR &&
-        $cell == $right &&
-        $cell !== $downR &&
-        $cell !== $down &&
-        $cell == $downL &&
-        $cell !== $left &&
+        ){
+            return CellType::CORNER;
+        }else if (
+            /**
+             * Internal Join 4
+             *
+             * 3 1 1
+             * 3 1 1
+             * 1 2 2
+             *
+             **/
+            $cell !== $upL &&
+            $cell == $up &&
+            $cell == $upR &&
+            $cell == $right &&
+            $cell !== $downR &&
+            $cell !== $down &&
+            $cell == $downL &&
+            $cell !== $left &&
 
-        $upL == $left &&
-        $down == $downR &&
-        $down !== $left
-    ){
-        return CellType::CORNER;
-    }else if(
-        /**
-         * Internal F
-         * 1 1 1
-         * 1 1 1
-         * 1 1 0
-         **/
-        $cell == $upL &&
-        $cell == $up &&
-        $cell == $upR &&
-        $cell == $right &&
-        $cell !== $downR &&
-        $cell == $down &&
-        $cell == $downL &&
-        $cell == $left
-    ){
-        return CellType::CORNER;
-    }else if(
-        /**
-         * Internal 7
-         * 1 1 1
-         * 1 1 1
-         * 0 1 1
-         **/
-        $cell == $upL &&
-        $cell == $up &&
-        $cell == $upR &&
-        $cell == $right &&
-        $cell == $downR &&
-        $cell == $down &&
-        $cell !== $downL &&
-        $cell == $left
-    ){
-        return CellType::CORNER;
-    }else if(
-        /**
-         * Internal J
-         * 0 1 1
-         * 1 1 1
-         * 1 1 1
-         **/
-        $cell !== $upL &&
-        $cell == $up &&
-        $cell == $upR &&
-        $cell == $right &&
-        $cell == $downR &&
-        $cell == $down &&
-        $cell == $downL &&
-        $cell == $left
-    ){
-        return CellType::CORNER;
-    }else if(
-        /**
-         * Internal L
-         * 1 1 0
-         * 1 1 1
-         * 1 1 1
-         **/
-        $cell == $upL &&
-        $cell == $up &&
-        $cell !== $upR &&
-        $cell == $right &&
-        $cell == $downR &&
-        $cell == $down &&
-        $cell == $downL &&
-        $cell == $left
-    ){
-        return CellType::CORNER;
-    }else if($cell == $up && $cell== $down){ // vertical coridor
+            $upL == $left &&
+            $down == $downR &&
+            $down !== $left
+        ){
+            return CellType::CORNER;
+        }else if(
+            /**
+             * Internal F
+             * 1 1 1
+             * 1 1 1
+             * 1 1 0
+             **/
+            $cell == $upL &&
+            $cell == $up &&
+            $cell == $upR &&
+            $cell == $right &&
+            $cell !== $downR &&
+            $cell == $down &&
+            $cell == $downL &&
+            $cell == $left
+        ){
+            return CellType::CORNER;
+        }else if(
+            /**
+             * Internal 7
+             * 1 1 1
+             * 1 1 1
+             * 0 1 1
+             **/
+            $cell == $upL &&
+            $cell == $up &&
+            $cell == $upR &&
+            $cell == $right &&
+            $cell == $downR &&
+            $cell == $down &&
+            $cell !== $downL &&
+            $cell == $left
+        ){
+            return CellType::CORNER;
+        }else if(
+            /**
+             * Internal J
+             * 0 1 1
+             * 1 1 1
+             * 1 1 1
+             **/
+            $cell !== $upL &&
+            $cell == $up &&
+            $cell == $upR &&
+            $cell == $right &&
+            $cell == $downR &&
+            $cell == $down &&
+            $cell == $downL &&
+            $cell == $left
+        ){
+            return CellType::CORNER;
+        }else if(
+            /**
+             * Internal L
+             * 1 1 0
+             * 1 1 1
+             * 1 1 1
+             **/
+            $cell == $upL &&
+            $cell == $up &&
+            $cell !== $upR &&
+            $cell == $right &&
+            $cell == $downR &&
+            $cell == $down &&
+            $cell == $downL &&
+            $cell == $left
+        ){
+            return CellType::CORNER;
+        }else if($cell == $up && $cell== $down){ // vertical coridor
 
-        /**
-         * ? 1 ?
-         * 1 1 0
-         * 0 1 0
-         **/
-        if($cell !== $left && $cell !== $right){
-            return CellType::VERTICAL_CORRIDOR;
+            /**
+             * ? 1 ?
+             * 1 1 0
+             * 0 1 0
+             **/
+            if($cell !== $left && $cell !== $right){
+                return CellType::VERTICAL_CORRIDOR;
+            }
+            /**
+             *   1 0 1
+             **/
+            return CellType::SINGLE_EDGE; // edge only
+        }else if($cell == $left && $cell== $right){ // horizontal coridor
+
+            /**  \/
+             *  ? 0 1
+             *  0 0 0
+             *  ? 1 1
+             **/
+            if($cell != $up && $cell !== $down){
+                return CellType::HORIZONTAL_CORRIDOR; // coridor
+            }
+            return CellType::SINGLE_EDGE; // edge only
+        }else{
+            return CellType::PENINSULA; // edge
         }
-        /**
-         *   1 0 1
-         **/
-        return CellType::SINGLE_EDGE; // edge only
-    }else if($cell == $left && $cell== $right){ // horizontal coridor
-
-        /**  \/
-         *  ? 0 1
-         *  0 0 0
-         *  ? 1 1
-         **/
-        if($cell != $up && $cell !== $down){
-            return CellType::HORIZONTAL_CORRIDOR; // coridor
-        }
-        return CellType::SINGLE_EDGE; // edge only
-    }else{
-        return CellType::PENINSULA; // edge
     }
 }
 
 
 
-function floodFill($grid, $r, $c, $galaxyCount) {
-    $targ = $grid[$r][$c];
-    if ($targ == $galaxyCount) return $grid;
-    checkNeighbours($grid, $r, $c, $galaxyCount, $targ);
-    return $grid;
-}
+class Solver{
 
-function checkNeighbours(&$grid, $r, $c, $galaxyCoung, $targ): void {
-    if (!isset($grid[$r][$c]) || $grid[$r][$c] != $targ){
-        return;
-    }
-
-    $grid[$r][$c] = $galaxyCoung;
-
-    checkNeighbours($grid, $r - 1, $c, $galaxyCoung, $targ);
-    checkNeighbours($grid, $r + 1, $c, $galaxyCoung, $targ);
-    checkNeighbours($grid, $r, $c - 1, $galaxyCoung, $targ);
-    checkNeighbours($grid, $r, $c + 1, $galaxyCoung, $targ);
-}
-
-function part2():void{
     /**
-     * @var array<string,int> $galaxyIterations
-     **/
-    $galaxyIterations = [];
-    $galaxies = [];
-    //$input = file_get_contents(__DIR__ . '/single-galaxies-test-input.txt');
-    //$input = file_get_contents(__DIR__ . '/e-region-test.txt');
-    //$input = file_get_contents(__DIR__ . '/price-test-input2.txt');
-   //$input = file_get_contents(__DIR__ . '/base-test-input.txt');
-   //$input = file_get_contents(__DIR__ . '/test-input.txt');
-    $input = file_get_contents(__DIR__ . '/input.txt');
-    if($input === false) exit("Input file not found" . PHP_EOL);
-    $input = trim($input);
+     * @var int $galaxyCount
+     */
+    private $galaxyCount;
+    /**
+     * @var Grid $grid
+     */
+    private $grid;
 
-    $grid = Grid::fromString($input);
+    function __construct(string $input){
+        $this->galaxyCount = 0;
+        $this->grid = Grid::fromString($input);
+    }
 
+    private function getFloddedGrid():Grid{
+        $floodedGrid = $this->grid->clone();
+        echo 'w: ' . $floodedGrid->getWidth() . PHP_EOL;
+        echo 'h: ' . $floodedGrid->getHeight() . PHP_EOL;
 
-    $legend = [];
-    $galaxyCount = 0;
+        for($r = 0; $r < $floodedGrid->getWidth(); $r++){
+            for($c = 0; $c < $floodedGrid->getHeight(); $c++){
 
+                $cell = $floodedGrid->getCell($r, $c);
 
+                if(!is_numeric($cell)){
+                    $floodedGrid->addLegend($this->galaxyCount, $cell);
+                    $floodedGrid->floodFill($r, $c, $this->galaxyCount);
+                    $this->galaxyCount++;
+                }
 
-    $newGrid = $grid->getGrid();
-
-    // preprocess grid
-
-
-    for($r = 0; $r < count($newGrid); $r++){
-        for($c = 0; $c < count($newGrid[0]); $c++){
-            $cell = $newGrid[$r][$c];
-
-            if(!is_numeric($cell)){
-                $legend[$galaxyCount] = $cell;
-                $newGrid = floodFill($newGrid, $r, $c, $galaxyCount);
-                $galaxyCount++;
             }
         }
+
+        return $floodedGrid;
+
     }
 
-    $floodedGrid = [];
-    foreach($newGrid as $row){
-        $floodedGrid[] = $row;
-    }
-
-
-    if($floodedGrid){
-        $grid->setGrid($floodedGrid);
-    }
-
-    $ans = 0;
-    for($r = 0; $r < count($grid->getGrid()); $r++){
-        for($c = 0; $c < count($grid->getGrid()[0]); $c++){
-
-            $cell = $grid->getCell($r, $c);
-            $cellType = cellType($grid, $r, $c);
-
-
-
-
-
-
-
-           if(!isset($galaxies[$cell])){
-                $galaxies[$cell] = [
-                    'area' => 1,
-                    'key' => $legend[$cell],
-                    'sides' => 0,
-                    'type' => $cellType,
-                    'cells' => [[$r,$c,$cellType]]
-                ];
-            }else{
-                $galaxies[$cell]['area']++;
-                $galaxies[$cell]['cells'][] = [$r, $c, $cellType];
-            }
-        }
-    }
-
-
-
-    $blownUpGrid = [];
     /**
-     * Blow up the grid
+     * @param Grid $floodedGrid
      *
-     * for each cell in the grid
-     * create it as a 3x3 matrix in the new grid
-     **/
-    for($r = 0; $r < count($grid->getGrid()); $r++){
-        for($c = 0; $c < count($grid->getGrid()[0]); $c++){
-            $cell = $grid->getCell($r, $c);
-            $blownUpGrid[$r*3][$c*3] = $cell;
-            for($i = 1; $i < 3; $i++){
-                $blownUpGrid[$r*3][$c*3+$i] = $cell;
-            }
+     * @return array<string, array{area: int, key: string, sides: int, cells: array<array{int, int, \AOC\D11\P2\CellType}>}>
+     */
+    private function getGalaxiesFromGrid(Grid $floodedGrid):array{
+        $galaxies = [];
+        for($r = 0; $r < count($floodedGrid->getGrid()); $r++){
+            for($c = 0; $c < count($floodedGrid->getGrid()[0]); $c++){
 
-            $blownUpGrid[$r*3+1][$c*3] = $cell;
-            $blownUpGrid[$r*3+1][$c*3+1] = $cell;
-            $blownUpGrid[$r*3+1][$c*3+2] = $cell;
-
-            $blownUpGrid[$r*3+2][$c*3] = $cell;
-            $blownUpGrid[$r*3+2][$c*3+1] = $cell;
-            $blownUpGrid[$r*3+2][$c*3+2] = $cell;
-        }
-    }
-
-    $blownGrid = new Grid($blownUpGrid);
-    echo $blownGrid . PHP_EOL;
+                $cell = $floodedGrid->getCell($r, $c);
+                $cellType = $floodedGrid->getCellType($floodedGrid, $r, $c);
 
 
-    for($r = 0; $r < count($blownGrid->getGrid()); $r++){
-        for($c = 0; $c < count($blownGrid->getGrid()[0]); $c++){
-
-            $cell = $blownGrid->getCell($r, $c);
-            $cellType = cellType($blownGrid, $r, $c);
-
-            if($cellType === CellType::CORNER){
-                echo "Corner at ($r,$c)" . PHP_EOL;
-                $galaxies[$cell]['sides']++;
+                if(!isset($galaxies[$cell])){
+                    $galaxies[$cell] = [
+                        'area' => 1,
+                        'key' => $floodedGrid->getLegend((int) $cell),
+                        'sides' => 0,
+                        'cells' => [[$r,$c,$cellType]]
+                    ];
+                }else{
+                    $galaxies[$cell]['area']++;
+                    $galaxies[$cell]['cells'][] = [$r, $c, $cellType];
+                }
             }
         }
+        return $galaxies;
     }
 
 
+    public function solve(): int{
+        $floodedGrid = $this->getFloddedGrid();
+        $galaxies = $this->getGalaxiesFromGrid($floodedGrid);
 
 
-    foreach($galaxies as $galaxy){
+        $blownUpGrid = [];
+        /**
+         * Blow up the grid
+         *
+         * for each cell in the grid
+         * create it as a 3x3 matrix in the new grid
+         **/
+        for($r = 0; $r < count($floodedGrid->getGrid()); $r++){
+            for($c = 0; $c < count($floodedGrid->getGrid()[0]); $c++){
+                $cell = $floodedGrid->getCell($r, $c);
+                $blownUpGrid[$r*3][$c*3] = $cell;
+                for($i = 1; $i < 3; $i++){
+                    $blownUpGrid[$r*3][$c*3+$i] = $cell;
+                }
+
+                $blownUpGrid[$r*3+1][$c*3] = $cell;
+                $blownUpGrid[$r*3+1][$c*3+1] = $cell;
+                $blownUpGrid[$r*3+1][$c*3+2] = $cell;
+
+                $blownUpGrid[$r*3+2][$c*3] = $cell;
+                $blownUpGrid[$r*3+2][$c*3+1] = $cell;
+                $blownUpGrid[$r*3+2][$c*3+2] = $cell;
+            }
+        }
+
+        $blownGrid = new Grid($blownUpGrid);
 
 
-$t = $galaxy['type'] == CellType::STAND_ALONE ? 'stand alone':'norm';
+        for($r = 0; $r < count($blownGrid->getGrid()); $r++){
+            for($c = 0; $c < count($blownGrid->getGrid()[0]); $c++){
 
-        echo "Galaxy {$galaxy['key']}\n\tType:{$t}\n\tArea:{$galaxy['area']}\n\tSide:{$galaxy['sides']} " . PHP_EOL;
-        $ans += $galaxy['sides'] * $galaxy['area'];
+                $cell = $blownGrid->getCell($r, $c);
+                $cellType = $blownGrid->getCellType($blownGrid, $r, $c);
+
+                if($cellType === CellType::CORNER){
+                    $galaxies[$cell]['sides']++;
+                }
+            }
+        }
+
+        $ans = 0;
+        foreach($galaxies as $galaxy){
+            $ans += $galaxy['sides'] * $galaxy['area'];
+        }
+        return $ans;
     }
-
-    echo "Part 2: $ans == 1930" . PHP_EOL;
 }
 
-part2();
+class Part2{
+    static function run():void{
+        /**
+         * @var string[] $files
+         */
+        $files =[
+            'base-test-input.txt',
+            'single-galaxies-test-input.txt',
+            'e-region-test.txt',
+            'price-test-input2.txt',
+            'test-input.txt',
+            'input.txt'
+        ];
+
+
+        foreach($files as $file){
+            $input = file_get_contents(__DIR__ . '/' . $file);
+            if($input === false) exit("Input file not found" . PHP_EOL);
+            $input = trim($input);
+
+            $ans = (new Solver($input))->solve();
+            echo "{$ans} ({$file})" . PHP_EOL;
+        }
+    }
+}
+
+Part2::run();

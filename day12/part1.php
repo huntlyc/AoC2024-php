@@ -7,12 +7,12 @@ namespace AOC\D11\P1;
 class Grid
 {
     /**
-     * @var string[][] $grid
+     * @var array<array<int|string>> $grid
      */
     private array $grid;
 
     /**
-     * @param string[][] $grid
+     * @param array<array<int|string>> $grid
      */
     public function __construct(array $grid)
     {
@@ -20,7 +20,7 @@ class Grid
     }
 
     /**
-     * @return string[][]
+     * @return array<array<int|string>> $grid
      */
     public function getGrid(): array
     {
@@ -28,7 +28,7 @@ class Grid
     }
 
     /**
-     * @param string[][] $grid
+     * @param array<array<int|string>> $grid
      */
     public function setGrid(array $grid): void
     {
@@ -81,7 +81,7 @@ enum CellType {
     case PENINSULA;
 }
 
-function cellType($grid, $r, $c):CellType{
+function cellType(Grid $grid, int $r, int $c):CellType{
     $cell = $grid->getCell($r, $c);
     $upCell = $grid->getCell($r-1, $c);
     $leftCell = $grid->getCell($r, $c-1);
@@ -172,31 +172,40 @@ function cellType($grid, $r, $c):CellType{
 
 
 
-function floodFill($grid, $r, $c, $galaxyCount) {
+/**
+ * @param array<array<int|string>> $grid
+ * @param int $r
+ * @param int $c
+ * @param int $galaxyCount
+ * @return array<array<int|string>> $grid
+ */
+function floodFill(array $grid, int $r, int $c, int $galaxyCount): array {
     $targ = $grid[$r][$c];
     if ($targ == $galaxyCount) return $grid;
     checkNeighbours($grid, $r, $c, $galaxyCount, $targ);
     return $grid;
 }
 
-function checkNeighbours(&$grid, $r, $c, $galaxyCoung, $targ): void {
+/**
+ * @param array<array<int|string>> $grid
+ * @param int $r
+ * @param int $c
+ * @param int $galaxyCount
+ */
+function checkNeighbours(array &$grid, int $r, int $c, int $galaxyCount, string|int $targ): void {
     if (!isset($grid[$r][$c]) || $grid[$r][$c] != $targ){
         return;
     }
 
-    $grid[$r][$c] = $galaxyCoung;
+    $grid[$r][$c] = $galaxyCount;
 
-    checkNeighbours($grid, $r - 1, $c, $galaxyCoung, $targ);
-    checkNeighbours($grid, $r + 1, $c, $galaxyCoung, $targ);
-    checkNeighbours($grid, $r, $c - 1, $galaxyCoung, $targ);
-    checkNeighbours($grid, $r, $c + 1, $galaxyCoung, $targ);
+    checkNeighbours($grid, $r - 1, $c, $galaxyCount, $targ);
+    checkNeighbours($grid, $r + 1, $c, $galaxyCount, $targ);
+    checkNeighbours($grid, $r, $c - 1, $galaxyCount, $targ);
+    checkNeighbours($grid, $r, $c + 1, $galaxyCount, $targ);
 }
 
 function part1():void{
-        /**
-         * @var array<string,int> $galaxyIterations
-         **/
-        $galaxyIterations = [];
         $galaxies = [];
         $input = file_get_contents(__DIR__ . '/input.txt');
         if($input === false) exit("Input file not found" . PHP_EOL);
