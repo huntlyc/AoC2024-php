@@ -4,6 +4,58 @@ declare(strict_types=1);
 
 namespace AOC\D14\P2;
 
+    /**
+    * cls - Clear the screen
+    * taken from https://gist.github.com/icebreaker/4130200
+    */
+    function cls(){
+        print("\033[2J\033[;H");
+    }
+
+   /**
+    * Colours a char for output onto the terminal
+    .*/
+    function colourChar(string $char, string $colour) {
+        switch($colour) {
+            case 'black':
+                return "\033[0;30m$char\033[0m";
+            case 'white':
+                return "\033[1;37m$char\033[0m";
+            case 'dark_grey':
+                return "\033[1;30m$char\033[0m";
+            case 'red':
+                return "\033[0;31m$char\033[0m";
+            case 'green':
+                return "\033[0;32m$char\033[0m";
+            case 'brown':
+                return "\033[0;33m$char\033[0m";
+            case 'yellow':
+                return "\033[1;33m$char\033[0m";
+            case 'blue':
+                return "\033[0;34m$char\033[0m";
+            case 'magenta':
+                return "\033[0;35m$char\033[0m";
+            case 'cyan':
+                return "\033[0;36m$char\033[0m";
+            case 'light_cyan':
+                return "\033[1;36m$char\033[0m";
+            case 'light_grey':
+                return "\033[0;37m$char\033[0m";
+            case 'light_red':
+                return "\033[1;31m$char\033[0m";
+            case 'light_green':
+                return "\033[1;32m$char\033[0m";
+            case 'light_blue':
+                return "\033[1;34m$char\033[0m";
+            case 'light_magenta':
+                return "\033[1;35m$char\033[0m";
+        }
+
+        return "\033[1;37m^\033[0m"; // white
+    }
+
+
+
 class Grid {
     /**
      * @var string[][]
@@ -133,12 +185,30 @@ function main():void{
         }
     }
 
+    cls();
 
     // print the grid
     echo PHP_EOL;
     echo PHP_EOL;
-    echo " MERRY CHRISTMAS " . PHP_EOL;
-    echo " =============== " . PHP_EOL;
+
+
+    $titleArray = ['M', 'E', 'R', 'R', 'Y', ' ', 'C', 'H', 'R', 'I', 'S', 'T', 'M', 'A', 'S'];
+    $colours = [
+        'green',
+        'yellow',
+        'red',
+        'light_red',
+        'light_green',
+    ];
+
+    echo "\t\t";
+    foreach($titleArray as $char){
+        echo colourChar($char, $colours[array_rand($colours)]);
+    }
+    echo PHP_EOL;
+
+    echo "\t\t";
+    echo colourChar("===============", 'dark_grey') . PHP_EOL;
     echo PHP_EOL;
     echo PHP_EOL;
     $currentGrid = $grid->getGrid();
@@ -146,15 +216,47 @@ function main():void{
         $currentGrid[$robot->getPos()->y][$robot->getPos()->x] = 'X';
     }
 
+
+    $xmasGrid = [];
     $r = 0;
     foreach($currentGrid as $row){
         $r++;
         if($r < 41 || $r > 75){
             continue;
         }
-        echo implode('', array_slice($row, 43, 34)) . PHP_EOL;
+        $xmasGrid[] = array_slice($row, 43, 33);
     }
-    echo PHP_EOL;
+
+
+    for($r = 0; $r < count($xmasGrid); $r++){
+        echo "\t";
+        for($c = 0; $c < count($xmasGrid[$r]); $c++){
+            $char = $xmasGrid[$r][$c];
+            if($char === 'X'){
+                if($r == 1 || $r == count($xmasGrid) - 2){ // border
+                    echo colourChar($char, 'light_red');
+                }else if( // star
+                    $r == 6 && ($c > 2 && $c < count($xmasGrid[$r]) - 5)
+                ){
+                        echo colourChar($char, 'yellow');
+                }else if( // trunk
+                    ($r > count($xmasGrid) - 10 && $r < count($xmasGrid) - 6) &&
+                    ($c > 2 && $c < count($xmasGrid[$r]) - 5)
+                ){
+                        echo colourChar($char, 'magenta');
+                }else{
+                    if($c == 1 || $c == count($xmasGrid[$r]) - 2){ // border
+                        echo colourChar($char, 'light_red');
+                    }else{ // foliage
+                        echo colourChar($char, 'light_green');
+                    }
+                }
+            }else if($char === '.'){
+                echo colourChar($char, 'dark_grey');
+            }
+        }
+        echo PHP_EOL;
+    }
 
 
     /*
@@ -198,7 +300,7 @@ function main():void{
 
 
 
-    echo "Part 2: {$i}" . PHP_EOL;
+    //echo "Part 2: {$i}" . PHP_EOL;
 }
 
 main();
