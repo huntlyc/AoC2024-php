@@ -8,14 +8,14 @@ namespace AOC\D14\P2;
     * cls - Clear the screen
     * taken from https://gist.github.com/icebreaker/4130200
     */
-    function cls(){
+    function cls():void{
         print("\033[2J\033[;H");
     }
 
    /**
     * Colours a char for output onto the terminal
     .*/
-    function colourChar(string $char, string $colour) {
+    function colourChar(string $char, string $colour):string{
         switch($colour) {
             case 'black':
                 return "\033[0;30m$char\033[0m";
@@ -191,8 +191,14 @@ function main():void{
     echo PHP_EOL;
     echo PHP_EOL;
 
-
+    /**
+     * @var string[]
+     **/
     $titleArray = ['M', 'E', 'R', 'R', 'Y', ' ', 'C', 'H', 'R', 'I', 'S', 'T', 'M', 'A', 'S'];
+
+    /**
+     * @var string[]
+     **/
     $colours = [
         'green',
         'yellow',
