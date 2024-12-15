@@ -295,7 +295,6 @@ class WarehouseSimulator2024{
 
 
         if($this->isWall($newBoxPos)){
-            //echo "Box {$box->getID()} at {$box->getPos()} cant move {$dir} to {$newBoxPos} because of wall" . PHP_EOL;
             return false;
         }
 
@@ -303,13 +302,11 @@ class WarehouseSimulator2024{
         $nextBox = $this->isBox($newBoxPos);
         if($nextBox instanceof Box){
             if(!$this->shuntBox($nextBox, $dir)){
-                //echo "Box {$box->getID()} at {$box->getPos()} cant move {$dir} to {$newBoxPos}" . PHP_EOL;
                 return false;
             }
         }
 
         // moving into free space
-        //echo "Box {$box->getID()} at {$box->getPos()} will be moved {$dir} to {$newBoxPos}" . PHP_EOL;
         $box->setPos($newBoxPos);
         return true;
     }
@@ -331,7 +328,6 @@ class WarehouseSimulator2024{
             list($newRobotPos,$dir) = $this->robot->posAfterMove();
 
             if($this->isWall($newRobotPos)){
-                //echo "Wall at {$newRobotPos}" . PHP_EOL;
                 $this->robot->skipMove();
                 $moves++;
                 continue;
@@ -351,9 +347,6 @@ class WarehouseSimulator2024{
                 $moves++;
                 $this->robot->moveTo($newRobotPos);
             }
-
-            //echo "After $moves moves" . PHP_EOL;
-            //echo $this . PHP_EOL;
         }
     }
 
@@ -444,8 +437,6 @@ function parseInput(string $input):WarehouseSimulator2024{
 }
 
 function main():void{
-    //$input = file_get_contents(__DIR__ . '/base-test-input.txt');
-    //$input = file_get_contents(__DIR__ . '/test-input.txt');
     $input = file_get_contents(__DIR__ . '/input.txt');
     if($input === false) exit("Input file not found" . PHP_EOL);
     $input = trim($input);
