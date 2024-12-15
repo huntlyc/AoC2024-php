@@ -437,7 +437,8 @@ function parseInput(string $input):WarehouseSimulator2024{
 }
 
 function main():void{
-    $input = file_get_contents(__DIR__ . '/input.txt');
+    // $input = file_get_contents(__DIR__ . '/input.txt');
+    $input = file_get_contents(__DIR__ . '/test-input.txt');
     if($input === false) exit("Input file not found" . PHP_EOL);
     $input = trim($input);
 
