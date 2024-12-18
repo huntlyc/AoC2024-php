@@ -284,26 +284,15 @@
                 }
 
 
-                // rotate left
-                $left = match($pathPoint->direction){
-                    Direction::NORTH => Direction::WEST,
-                    Direction::WEST => Direction::SOUTH,
-                    Direction::SOUTH => Direction::EAST,
-                    Direction::EAST => Direction::NORTH,
-                };
-
-                // rotate right
-                $right = match($pathPoint->direction){
-                    Direction::NORTH => Direction::EAST,
-                    Direction::EAST => Direction::SOUTH,
-                    Direction::SOUTH => Direction::WEST,
-                    Direction::WEST => Direction::NORTH,
-                };
-
                 /**
                  * @var Direction[] $directions
                  */
-                $directions = [$left, $pathPoint->direction, $right];
+                $directions = [
+                    Direction::NORTH,
+                    Direction::EAST,
+                    Direction::SOUTH,
+                    Direction::WEST,
+                ];
 
                 foreach($directions as $dir){
                     $strDirection = dirToStr($dir);
@@ -327,9 +316,6 @@
                     echo "Adding {$dest} with direction {$strDirection} to queue" . PHP_EOL;
 
                     $newCost = 1;
-                    if($dir != $pathPoint->direction){
-                        $newCost = 1001;
-                    }
                     $moveCost = $cost + $newCost;
                     $this->queue->insert(
                         [new PathPoint($dest, $dir, $path)],
